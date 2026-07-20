@@ -12,7 +12,8 @@ const args = process.argv.slice(2);
 const cmd = args[0];
 
 function pwsh(script) {
-  return execSync(`powershell -NoProfile -Command "${script.replace(/"/g, '\\"')}"`, { encoding: 'utf-8', stdio: 'pipe' });
+  const escaped = script.replace(/"/g, '\\"');
+  return execSync(`powershell -NoProfile -Command "${escaped}"`, { encoding: 'utf-8', stdio: 'pipe' });
 }
 
 function help() {
@@ -35,12 +36,12 @@ function getSpaPath() {
 }
 
 function extractSpa(spaPath, destDir) {
-  pwsh(`Expand-Archive -Path "${spaPath}" -DestinationPath "${destDir}" -Force`);
+  pwsh(`Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory('${spaPath}', '${destDir}')`);
 }
 
 function repackSpa(srcDir, spaPath) {
   if (existsSync(spaPath)) copyFileSync(spaPath, spaPath + '.bak');
-  pwsh(`Compress-Archive -Path "${srcDir}\\*" -DestinationPath "${spaPath}" -Force`);
+  pwsh(`Add-Type -AssemblyName System.IO.Compression.FileSystem; if(Test-Path('${spaPath}')){Remove-Item '${spaPath}'-Force}; [System.IO.Compression.ZipFile]::CreateFromDirectory('${srcDir}', '${spaPath}')`);
 }
 
 function getExtensions() {
