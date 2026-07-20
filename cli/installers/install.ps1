@@ -21,6 +21,7 @@ Write-Host "Node.js: $nodeVer" -ForegroundColor Cyan
 # Create directories
 New-Item -ItemType Directory -Path "$InstallDir\bin" -Force | Out-Null
 New-Item -ItemType Directory -Path "$InstallDir\themes" -Force | Out-Null
+New-Item -ItemType Directory -Path "$InstallDir\extensions" -Force | Out-Null
 New-Item -ItemType Directory -Path "$InstallDir\config" -Force | Out-Null
 
 # Download CLI
@@ -34,6 +35,12 @@ Write-Host "Downloading themes..." -ForegroundColor Cyan
   $dest = "$InstallDir\themes\$_"
   try { Invoke-WebRequest -Uri $url -OutFile $dest -UseBasicParsing } catch {}
 }
+
+# Download store extension
+Write-Host "Downloading store extension..." -ForegroundColor Cyan
+try {
+  Invoke-WebRequest -Uri "$RepoBase/cli/extensions/store.js" -OutFile "$InstallDir\extensions\store.js" -UseBasicParsing
+} catch {}
 
 # Create launcher script
 $launcherPath = "$InstallDir\kladen.cmd"

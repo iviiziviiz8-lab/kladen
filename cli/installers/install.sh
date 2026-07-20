@@ -17,6 +17,7 @@ echo "Node.js: $(node --version)"
 
 mkdir -p "$INSTALL_DIR/bin"
 mkdir -p "$INSTALL_DIR/themes"
+mkdir -p "$INSTALL_DIR/extensions"
 mkdir -p "$INSTALL_DIR/config"
 
 echo "Downloading kladen..."
@@ -26,6 +27,7 @@ echo "Downloading themes..."
 for theme in default.css nord.css dark-purple.css; do
   curl -fsSL "$REPO_BASE/cli/themes/$theme" -o "$INSTALL_DIR/themes/$theme" 2>/dev/null || true
 done
+curl -fsSL "$REPO_BASE/cli/extensions/store.js" -o "$INSTALL_DIR/extensions/store.js" 2>/dev/null || true
 
 # Shell alias
 SHELL_CONFIG="$HOME/.bashrc"

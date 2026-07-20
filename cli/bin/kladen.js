@@ -1,11 +1,8 @@
 #!/usr/bin/env node
 import { readFileSync, existsSync, mkdirSync, copyFileSync, writeFileSync, readdirSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import { homedir } from 'os';
-import { createInterface } from 'readline';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
 const KLADEN_DIR = join(homedir(), '.kladen');
 const XPUI_DIR = join(homedir(), 'AppData', 'Roaming', 'Spotify', 'Apps', 'xpui');
 
@@ -17,15 +14,16 @@ function help() {
 Kladen - Spotify Customization Toolkit
 
 Usage:
-  kladen apply <theme>   Apply a theme to Spotify
-  kladen list            List installed themes
-  kladen backup          Backup original Spotify files
-  kladen restore         Restore from backup
+  kladen apply <theme>    Apply a theme (+ JS extensions)
+  kladen list             List installed themes
+  kladen extensions       List installed extensions
+  kladen backup           Backup original Spotify files
+  kladen restore          Restore from backup
   kladen config [key] [value]  View or set config
 `);
 }
 
-async function findSpotify() {
+async function findXpui() {
   const paths = [
     XPUI_DIR,
     join(homedir(), 'AppData', 'Local', 'Spotify', 'Apps', 'xpui'),
@@ -36,6 +34,12 @@ async function findSpotify() {
     if (existsSync(join(p, 'index.html'))) return p;
   }
   return null;
+}
+
+function getExtensions() {
+  const dir = join(KLADEN_DIR, 'extensions');
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir).filter(f => f.endsWith('.js'));
 }
 
 async function cmdList() {
@@ -53,8 +57,19 @@ async function cmdList() {
   }
 }
 
+async function cmdExtensions() {
+  const exts = getExtensions();
+  if (exts.length === 0) {
+    console.log('No extensions installed.');
+    console.log('Add .js files to:', join(KLADEN_DIR, 'extensions'));
+    return;
+  }
+  console.log('Installed extensions:');
+  exts.forEach(f => console.log('  - ' + f.replace('.js', '')));
+}
+
 async function cmdBackup() {
-  const xpui = await findSpotify();
+  const xpui = await findXpui();
   if (!xpui) { console.error('Spotify xpui not found.'); return; }
   const bakDir = join(KLADEN_DIR, 'backup');
   mkdirSync(bakDir, { recursive: true });
@@ -64,7 +79,7 @@ async function cmdBackup() {
 
 async function cmdRestore() {
   const bak = join(KLADEN_DIR, 'backup', 'index.html');
-  const xpui = await findSpotify();
+  const xpui = await findXpui();
   if (!xpui) { console.error('Spotify xpui not found.'); return; }
   if (!existsSync(bak)) { console.error('No backup found.'); return; }
   copyFileSync(bak, join(xpui, 'index.html'));
@@ -72,7 +87,7 @@ async function cmdRestore() {
 }
 
 async function cmdApply(themeName) {
-  const xpui = await findSpotify();
+  const xpui = await findXpui();
   if (!xpui) { console.error('Spotify xpui not found.'); return; }
 
   if (!themeName) {
@@ -80,29 +95,57 @@ async function cmdApply(themeName) {
     return;
   }
 
-  const cssPath = join(KLADEN_DIR, 'themes', themeName + '.css');
-  if (!existsSync(cssPath)) {
-    console.error('Theme not found:', themeName);
-    await cmdList();
-    return;
-  }
-
   const htmlPath = join(xpui, 'index.html');
-  const css = readFileSync(cssPath, 'utf-8');
   let html = readFileSync(htmlPath, 'utf-8');
 
-  const tag = `<style id="kladen-css">${css}</style>`;
-  if (html.includes('kladen-css')) {
-    html = html.replace(/<style id="kladen-css">[\s\S]*?<\/style>/, tag);
-  } else {
-    html = html.replace('</head>', `  ${tag}\n</head>`);
+  // Save backup if not exists
+  const bakPath = join(KLADEN_DIR, 'backup', 'index.html');
+  if (!existsSync(bakPath)) {
+    mkdirSync(join(KLADEN_DIR, 'backup'), { recursive: true });
+    copyFileSync(htmlPath, bakPath);
   }
 
+  // Inject CSS theme
+  const cssPath = join(KLADEN_DIR, 'themes', themeName + '.css');
+  if (existsSync(cssPath)) {
+    const css = readFileSync(cssPath, 'utf-8');
+    const cssTag = `<style id="kladen-css">${css}</style>`;
+    if (html.includes('kladen-css')) {
+      html = html.replace(/<style id="kladen-css">[\s\S]*?<\/style>/, cssTag);
+    } else {
+      html = html.replace('</head>', `  ${cssTag}\n</head>`);
+    }
+  } else {
+    // Remove CSS if theme not found
+    html = html.replace(/<style id="kladen-css">[\s\S]*?<\/style>/, '');
+  }
+
+  // Inject all JS extensions
+  const exts = getExtensions();
+  for (const ext of exts) {
+    const jsPath = join(KLADEN_DIR, 'extensions', ext);
+    const js = readFileSync(jsPath, 'utf-8');
+    const extId = 'kladen-ext-' + ext.replace('.js', '');
+    const jsTag = `<script id="${extId}">${js}</script>`;
+    if (html.includes(extId)) {
+      html = html.replace(new RegExp(`<script id="${extId}">[\\s\\S]*?<\\/script>`), jsTag);
+    } else {
+      html = html.replace('</body>', `  ${jsTag}\n</body>`);
+    }
+  }
+
+  // Save config
   mkdirSync(join(KLADEN_DIR, 'config'), { recursive: true });
   writeFileSync(join(KLADEN_DIR, 'config', 'current-theme'), themeName);
-  copyFileSync(htmlPath, htmlPath + '.bak');
+
+  // Write modified HTML
+  const bak = join(xpui, 'index.html.bak');
+  if (!existsSync(bak)) copyFileSync(htmlPath, bak);
   writeFileSync(htmlPath, html);
-  console.log(`Theme "${themeName}" applied! Restart Spotify.`);
+
+  console.log(`Theme "${themeName}" applied!`);
+  if (exts.length > 0) console.log(`+ ${exts.length} extension(s) injected`);
+  console.log('Restart Spotify to see changes.');
 }
 
 async function cmdConfig(key, value) {
@@ -123,6 +166,7 @@ async function cmdConfig(key, value) {
 switch (cmd) {
   case 'apply': await cmdApply(args[1]); break;
   case 'list': case 'ls': await cmdList(); break;
+  case 'extensions': case 'ext': await cmdExtensions(); break;
   case 'backup': await cmdBackup(); break;
   case 'restore': await cmdRestore(); break;
   case 'config': await cmdConfig(args[1], args[2]); break;
