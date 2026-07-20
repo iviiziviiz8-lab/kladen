@@ -2,64 +2,36 @@
 set -e
 
 INSTALL_DIR="${HOME}/.kladen"
-REPO_URL="https://github.com/iviiziviiz8-lab/kladen/raw/master"
+REPO_BASE="https://raw.githubusercontent.com/iviiziviiz8-lab/kladen/master"
 
 echo "========================================"
-echo "  Kladen - Spotify Customization Tool"
+echo "  Kladen - Spotify Customization"
 echo "========================================"
 echo ""
 
-# Check Node.js
 if ! command -v node &> /dev/null; then
   echo "Node.js is required. Install from https://nodejs.org"
   exit 1
 fi
-echo "Node.js detected: $(node --version)"
+echo "Node.js: $(node --version)"
 
-# Create directories
+mkdir -p "$INSTALL_DIR/bin"
 mkdir -p "$INSTALL_DIR/themes"
 mkdir -p "$INSTALL_DIR/config"
-mkdir -p "$INSTALL_DIR/cli/bin"
-mkdir -p "$INSTALL_DIR/cli/src/commands"
-mkdir -p "$INSTALL_DIR/cli/src/core"
 
-# Download CLI files
-FILES=(
-  "cli/package.json"
-  "cli/bin/kladen.js"
-  "cli/src/commands/apply.js"
-  "cli/src/commands/backup.js"
-  "cli/src/commands/restore.js"
-  "cli/src/commands/config.js"
-  "cli/src/commands/list.js"
-  "cli/src/core/spotify.js"
-  "cli/src/core/injector.js"
-)
+echo "Downloading kladen..."
+curl -fsSL "$REPO_BASE/cli/bin/kladen.js" -o "$INSTALL_DIR/bin/kladen.js"
 
-for file in "${FILES[@]}"; do
-  dest="$INSTALL_DIR/$file"
-  mkdir -p "$(dirname "$dest")"
-  echo "Downloading: $file"
-  curl -fsSL "$REPO_URL/$file" -o "$dest"
-done
-
-# Install npm deps
-cd "$INSTALL_DIR"
-npm install
-
-# Download themes
+echo "Downloading themes..."
 for theme in default.css nord.css dark-purple.css; do
-  curl -fsSL "$REPO_URL/cli/themes/$theme" -o "$INSTALL_DIR/themes/$theme" 2>/dev/null || true
+  curl -fsSL "$REPO_BASE/cli/themes/$theme" -o "$INSTALL_DIR/themes/$theme" 2>/dev/null || true
 done
 
-# Add alias
+# Shell alias
 SHELL_CONFIG="$HOME/.bashrc"
-if [ -f "$HOME/.zshrc" ]; then
-  SHELL_CONFIG="$HOME/.zshrc"
-fi
-
+[ -f "$HOME/.zshrc" ] && SHELL_CONFIG="$HOME/.zshrc"
 if ! grep -q "kladen" "$SHELL_CONFIG" 2>/dev/null; then
-  echo "alias kladen='node $INSTALL_DIR/cli/bin/kladen.js'" >> "$SHELL_CONFIG"
+  echo "alias kladen='node $INSTALL_DIR/bin/kladen.js'" >> "$SHELL_CONFIG"
   echo "Added alias to $SHELL_CONFIG"
 fi
 
