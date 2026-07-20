@@ -1,13 +1,19 @@
 #!/usr/bin/env node
-import { readFileSync, existsSync, mkdirSync, copyFileSync, writeFileSync, readdirSync } from 'fs';
-import { join } from 'path';
-import { homedir } from 'os';
+import { readFileSync, existsSync, mkdirSync, copyFileSync, writeFileSync, readdirSync, rmSync } from 'fs';
+import { join, basename, dirname } from 'path';
+import { homedir, tmpdir } from 'os';
+import { execSync } from 'child_process';
+import { randomUUID } from 'crypto';
 
 const KLADEN_DIR = join(homedir(), '.kladen');
-const XPUI_DIR = join(homedir(), 'AppData', 'Roaming', 'Spotify', 'Apps', 'xpui');
+const APPS_DIR = join(homedir(), 'AppData', 'Roaming', 'Spotify', 'Apps');
 
 const args = process.argv.slice(2);
 const cmd = args[0];
+
+function pwsh(script) {
+  return execSync(`powershell -NoProfile -Command "${script.replace(/"/g, '\\"')}"`, { encoding: 'utf-8', stdio: 'pipe' });
+}
 
 function help() {
   console.log(`
@@ -23,17 +29,18 @@ Usage:
 `);
 }
 
-async function findXpui() {
-  const paths = [
-    XPUI_DIR,
-    join(homedir(), 'AppData', 'Local', 'Spotify', 'Apps', 'xpui'),
-    'C:\\Program Files\\Spotify\\Apps\\xpui',
-    'C:\\Program Files (x86)\\Spotify\\Apps\\xpui',
-  ];
-  for (const p of paths) {
-    if (existsSync(join(p, 'index.html'))) return p;
-  }
-  return null;
+function getSpaPath() {
+  const p = join(APPS_DIR, 'xpui.spa');
+  return existsSync(p) ? p : null;
+}
+
+function extractSpa(spaPath, destDir) {
+  pwsh(`Expand-Archive -Path "${spaPath}" -DestinationPath "${destDir}" -Force`);
+}
+
+function repackSpa(srcDir, spaPath) {
+  if (existsSync(spaPath)) copyFileSync(spaPath, spaPath + '.bak');
+  pwsh(`Compress-Archive -Path "${srcDir}\\*" -DestinationPath "${spaPath}" -Force`);
 }
 
 function getExtensions() {
@@ -43,69 +50,57 @@ function getExtensions() {
 }
 
 async function cmdList() {
-  const themesDir = join(KLADEN_DIR, 'themes');
-  if (!existsSync(themesDir)) {
-    console.log('No themes installed. Add .css files to:', themesDir);
-    return;
-  }
-  const files = readdirSync(themesDir).filter(f => f.endsWith('.css'));
-  if (files.length === 0) {
-    console.log('No themes found.');
-  } else {
-    console.log('Installed themes:');
-    files.forEach(f => console.log('  - ' + f.replace('.css', '')));
-  }
+  const dir = join(KLADEN_DIR, 'themes');
+  if (!existsSync(dir)) { console.log('No themes installed.'); return; }
+  const files = readdirSync(dir).filter(f => f.endsWith('.css'));
+  if (files.length === 0) { console.log('No themes found.'); }
+  else { console.log('Installed themes:'); files.forEach(f => console.log('  - ' + f.replace('.css', ''))); }
 }
 
 async function cmdExtensions() {
   const exts = getExtensions();
-  if (exts.length === 0) {
-    console.log('No extensions installed.');
-    console.log('Add .js files to:', join(KLADEN_DIR, 'extensions'));
-    return;
-  }
-  console.log('Installed extensions:');
-  exts.forEach(f => console.log('  - ' + f.replace('.js', '')));
+  if (exts.length === 0) { console.log('No extensions.'); return; }
+  console.log('Installed extensions:'); exts.forEach(f => console.log('  - ' + f.replace('.js', '')));
 }
 
 async function cmdBackup() {
-  const xpui = await findXpui();
-  if (!xpui) { console.error('Spotify xpui not found.'); return; }
+  const spa = getSpaPath();
+  if (!spa) { console.error('xpui.spa not found. Is Spotify installed?'); return; }
   const bakDir = join(KLADEN_DIR, 'backup');
   mkdirSync(bakDir, { recursive: true });
-  copyFileSync(join(xpui, 'index.html'), join(bakDir, 'index.html'));
-  console.log('Backup saved to:', join(bakDir, 'index.html'));
+  copyFileSync(spa, join(bakDir, 'xpui.spa'));
+  console.log('Backup saved.');
 }
 
 async function cmdRestore() {
-  const bak = join(KLADEN_DIR, 'backup', 'index.html');
-  const xpui = await findXpui();
-  if (!xpui) { console.error('Spotify xpui not found.'); return; }
+  const bak = join(KLADEN_DIR, 'backup', 'xpui.spa');
   if (!existsSync(bak)) { console.error('No backup found.'); return; }
-  copyFileSync(bak, join(xpui, 'index.html'));
+  copyFileSync(bak, join(APPS_DIR, 'xpui.spa'));
   console.log('Restored from backup.');
 }
 
 async function cmdApply(themeName) {
-  const xpui = await findXpui();
-  if (!xpui) { console.error('Spotify xpui not found.'); return; }
+  const spaPath = getSpaPath();
+  if (!spaPath) { console.error('xpui.spa not found. Is Spotify installed?'); return; }
 
-  if (!themeName) {
-    console.error('Usage: kladen apply <theme-name>');
-    return;
-  }
+  if (!themeName) { console.error('Usage: kladen apply <theme-name>'); return; }
 
-  const htmlPath = join(xpui, 'index.html');
+  // Backup on first use
+  const bakPath = join(KLADEN_DIR, 'backup', 'xpui.spa');
+  mkdirSync(dirname(bakPath), { recursive: true });
+  if (!existsSync(bakPath)) copyFileSync(spaPath, bakPath);
+
+  // Extract spa to temp dir
+  const tmpDir = join(tmpdir(), 'kladen-' + randomUUID().slice(0, 8));
+  mkdirSync(tmpDir, { recursive: true });
+  extractSpa(spaPath, tmpDir);
+
+  const htmlPath = join(tmpDir, 'index.html');
+  if (!existsSync(htmlPath)) { console.error('index.html not found in xpui.spa'); return; }
+
   let html = readFileSync(htmlPath, 'utf-8');
 
-  // Save backup if not exists
-  const bakPath = join(KLADEN_DIR, 'backup', 'index.html');
-  if (!existsSync(bakPath)) {
-    mkdirSync(join(KLADEN_DIR, 'backup'), { recursive: true });
-    copyFileSync(htmlPath, bakPath);
-  }
-
-  // Inject CSS theme
+  // Inject CSS
   const cssPath = join(KLADEN_DIR, 'themes', themeName + '.css');
   if (existsSync(cssPath)) {
     const css = readFileSync(cssPath, 'utf-8');
@@ -116,16 +111,15 @@ async function cmdApply(themeName) {
       html = html.replace('</head>', `  ${cssTag}\n</head>`);
     }
   } else {
-    // Remove CSS if theme not found
     html = html.replace(/<style id="kladen-css">[\s\S]*?<\/style>/, '');
   }
 
-  // Inject all JS extensions
+  // Inject JS extensions
   const exts = getExtensions();
   for (const ext of exts) {
     const jsPath = join(KLADEN_DIR, 'extensions', ext);
     const js = readFileSync(jsPath, 'utf-8');
-    const extId = 'kladen-ext-' + ext.replace('.js', '');
+    const extId = 'kladen-' + ext.replace('.js', '');
     const jsTag = `<script id="${extId}">${js}</script>`;
     if (html.includes(extId)) {
       html = html.replace(new RegExp(`<script id="${extId}">[\\s\\S]*?<\\/script>`), jsTag);
@@ -134,14 +128,15 @@ async function cmdApply(themeName) {
     }
   }
 
+  writeFileSync(htmlPath, html);
+
+  // Repack
+  repackSpa(tmpDir, spaPath);
+  rmSync(tmpDir, { recursive: true, force: true });
+
   // Save config
   mkdirSync(join(KLADEN_DIR, 'config'), { recursive: true });
   writeFileSync(join(KLADEN_DIR, 'config', 'current-theme'), themeName);
-
-  // Write modified HTML
-  const bak = join(xpui, 'index.html.bak');
-  if (!existsSync(bak)) copyFileSync(htmlPath, bak);
-  writeFileSync(htmlPath, html);
 
   console.log(`Theme "${themeName}" applied!`);
   if (exts.length > 0) console.log(`+ ${exts.length} extension(s) injected`);
@@ -149,17 +144,13 @@ async function cmdApply(themeName) {
 }
 
 async function cmdConfig(key, value) {
-  const configDir = join(KLADEN_DIR, 'config');
-  mkdirSync(configDir, { recursive: true });
-  const configPath = join(configDir, 'settings.json');
+  const configPath = join(KLADEN_DIR, 'config', 'settings.json');
+  mkdirSync(join(KLADEN_DIR, 'config'), { recursive: true });
   let config = {};
-  if (existsSync(configPath)) {
-    try { config = JSON.parse(readFileSync(configPath, 'utf-8')); } catch {}
-  }
+  if (existsSync(configPath)) { try { config = JSON.parse(readFileSync(configPath, 'utf-8')); } catch {} }
   if (!key) { console.log(JSON.stringify(config, null, 2)); return; }
   if (!value) { console.log(key + ' = ' + (config[key] || '(not set)')); return; }
-  config[key] = value;
-  writeFileSync(configPath, JSON.stringify(config, null, 2));
+  config[key] = value; writeFileSync(configPath, JSON.stringify(config, null, 2));
   console.log(`Set ${key} = ${value}`);
 }
 
