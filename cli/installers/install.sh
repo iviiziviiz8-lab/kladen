@@ -2,7 +2,7 @@
 set -e
 
 INSTALL_DIR="${HOME}/.kladen"
-REPO_URL="https://github.com/iviiziviiz8-lab/kladen/raw/main"
+REPO_URL="https://github.com/iviiziviiz8-lab/kladen/raw/master"
 
 echo "========================================"
 echo "  Kladen - Spotify Customization Tool"

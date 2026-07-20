@@ -3,7 +3,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$RepoUrl = "https://github.com/iviiziviiz8-lab/kladen/raw/main"
+$RepoUrl = "https://github.com/iviiziviiz8-lab/kladen/raw/master"
 
 Write-Host "========================================" -ForegroundColor Green
 Write-Host "  Kladen - Spotify Customization Tool" -ForegroundColor Green
