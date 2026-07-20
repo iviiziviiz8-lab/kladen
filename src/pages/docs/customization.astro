@@ -1,0 +1,114 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Customization — Spicetify">
+  <div class="container docs">
+    <aside class="docs-sidebar">
+      <nav>
+        <h4>Getting Started</h4>
+        <a href="/docs/getting-started">Installation</a>
+        <a href="/docs/customization" class="active">Customization</a>
+        <a href="#">Development</a>
+        <a href="#">FAQ</a>
+      </nav>
+    </aside>
+    <article class="docs-content">
+      <h1>Customization</h1>
+      <p class="lead">Make Spotify look and feel exactly how you want with themes, extensions, and custom apps.</p>
+
+      <h2>Themes</h2>
+      <p>Themes change the entire visual appearance of Spotify. They can modify colors, fonts, spacing, layouts, and more. You can browse and install themes from the community-driven Marketplace.</p>
+      <pre><code>kladen config current_theme "Nord"&#10;kladen apply</code></pre>
+
+      <h2>Extensions</h2>
+      <p>Extensions add new functionality to Spotify. They can provide keyboard shortcuts, enhance the UI, or integrate with external services.</p>
+      <pre><code>kladen config extensions "shuffle+.js"&#10;kladen apply</code></pre>
+
+      <h2>Custom Apps</h2>
+      <p>Custom Apps are fully-featured pages that run inside Spotify. You can build your own or install existing ones from the Marketplace.</p>
+
+      <h2>Colors and Schemes</h2>
+      <p>You can customize individual colors without applying a full theme:</p>
+      <pre><code>[color]&#10;main_fg = #ffffff&#10;main_bg = #000000&#10;accent = #1ed760&#10;subtext = #a1a1aa</code></pre>
+
+      <h2>Marketplace</h2>
+      <p>The Marketplace is the easiest way to discover and install community-made themes, extensions, and custom apps. Access it directly from within Spotify after installing the Marketplace extension.</p>
+    </article>
+  </div>
+</Layout>
+
+<style is:global>
+  .docs {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 48px;
+    padding: 48px 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .docs-sidebar {
+    position: sticky;
+    top: 80px;
+    height: fit-content;
+  }
+
+  .docs-sidebar h4 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  .docs-sidebar a {
+    display: block;
+    padding: 6px 0;
+    font-size: 14px;
+    color: var(--text-muted);
+    transition: color 0.2s;
+  }
+
+  .docs-sidebar a:hover,
+  .docs-sidebar a.active {
+    color: var(--text);
+  }
+
+  .docs-content h1 {
+    font-size: 36px;
+    font-weight: 800;
+    margin-bottom: 16px;
+  }
+
+  .docs-content .lead {
+    font-size: 18px;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+  }
+
+  .docs-content h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 40px 0 16px;
+  }
+
+  .docs-content p {
+    font-size: 16px;
+    color: #d4d4d8;
+    margin-bottom: 16px;
+    line-height: 1.7;
+  }
+
+  .docs-content pre {
+    margin-bottom: 24px;
+  }
+
+  .docs-content a {
+    color: var(--accent);
+  }
+
+  .docs-content a:hover {
+    text-decoration: underline;
+  }
+</style>

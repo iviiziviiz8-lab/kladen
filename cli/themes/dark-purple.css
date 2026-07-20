@@ -1,0 +1,18 @@
+:root {
+  --main-bg: #0d0015;
+  --main-fg: #e8dff5;
+  --accent: #bb86fc;
+  --subtext: #a78bfa;
+  --card-bg: #1a0028;
+  --border: #2d0040;
+}
+
+.main-view-container,
+.Root__main-view { background: var(--main-bg) !important; }
+.Root__nav-bar, .nav-bar { background: #0d0015 !important; }
+.main-card-card:hover { background: var(--card-bg) !important; }
+.main-type-mesto, .main-type-ballad, .main-type-canon { color: var(--main-fg) !important; }
+.main-type-mestoSecondary, .main-type-balladSecondary { color: var(--subtext) !important; }
+.progress-bar { --progress-bar-color: #bb86fc !important; }
+.Root__now-playing-bar { background: #1a0028 !important; border-top: 1px solid var(--border) !important; }
+.os-scrollbar-handle { background: var(--border) !important; }

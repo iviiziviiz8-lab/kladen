@@ -1,0 +1,12 @@
+{
+  "name": "kladen",
+  "version": "0.0.1",
+  "description": "Your personal Spotify customization toolkit",
+  "type": "module",
+  "bin": {
+    "kladen": "./bin/kladen.js"
+  },
+  "dependencies": {
+    "commander": "^12.0.0"
+  }
+}

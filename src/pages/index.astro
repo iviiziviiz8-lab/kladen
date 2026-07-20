@@ -1,0 +1,372 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Kladen — Make Spotify truly yours">
+  <section class="hero">
+    <div class="container hero-inner">
+      <div class="hero-badge">
+        Open Source &middot; 22k+ Stars &middot; 18M+ Downloads
+      </div>
+      <h1 class="hero-title">Make Spotify <span class="gradient-text">truly yours</span>.</h1>
+      <p class="hero-subtitle">
+        Themes. Extensions. Custom Apps.<br />
+        Your personal Spotify customization toolkit.
+      </p>
+      <div class="hero-actions">
+        <a href="#install" class="btn btn-primary">Get Started</a>
+        <a href="https://github.com/YOUR_USERNAME/kladen" class="btn btn-outline">View on GitHub</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section showcase">
+    <div class="container">
+      <div class="showcase-grid">
+        <div class="showcase-card">
+          <div class="showcase-img marketplace-img"></div>
+          <p class="showcase-label">Marketplace</p>
+        </div>
+        <div class="showcase-card">
+          <div class="showcase-img apps-img"></div>
+          <p class="showcase-label">Custom Apps</p>
+        </div>
+        <div class="showcase-card">
+          <div class="showcase-img extensions-img"></div>
+          <p class="showcase-label">Extensions</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section themes-section">
+    <div class="container">
+      <h2 class="section-title">Themes for every taste</h2>
+      <p class="section-subtitle">Browse community-made themes that completely transform Spotify.</p>
+      <div class="themes-grid">
+        <div class="theme-card"><div class="theme-preview" style="background:linear-gradient(135deg,#2d2d2d,#1a1a1a)"></div><p>Sleek</p></div>
+        <div class="theme-card"><div class="theme-preview" style="background:linear-gradient(135deg,#1db954,#0d4423)"></div><p>Sleek Wealthy</p></div>
+        <div class="theme-card"><div class="theme-preview" style="background:linear-gradient(135deg,#2e3440,#3b4252)"></div><p>Nord</p></div>
+        <div class="theme-card"><div class="theme-preview" style="background:linear-gradient(135deg,#4a4a6a,#2a2a4a)"></div><p>Comfy</p></div>
+        <div class="theme-card"><div class="theme-preview" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe)"></div><p>Dribbblish</p></div>
+        <div class="theme-card"><div class="theme-preview" style="background:linear-gradient(135deg,#e91e63,#9c27b0)"></div><p>Bloom</p></div>
+      </div>
+      <div class="themes-more">
+        <a href="/docs/customization" class="btn btn-outline">Browse all themes &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section features">
+    <div class="container">
+      <h2 class="section-title">Everything you need</h2>
+      <p class="section-subtitle">A complete toolkit to customize every corner of Spotify.</p>
+      <div class="features-grid">
+        <a href="/docs/customization" class="feature-card">
+          <div class="feature-icon palette-icon"></div>
+          <h3>Themes</h3>
+          <p>Transform your Spotify with community color schemes, layouts, and visual overhauls.</p>
+        </a>
+        <a href="/docs/customization" class="feature-card">
+          <div class="feature-icon puzzle-icon"></div>
+          <h3>Extensions</h3>
+          <p>Add keyboard shortcuts, playback controls, and integrations with other services.</p>
+        </a>
+        <a href="/docs/customization" class="feature-card">
+          <div class="feature-icon app-icon"></div>
+          <h3>Custom Apps</h3>
+          <p>Build entirely new pages inside Spotify for lyrics, stats, and more.</p>
+        </a>
+        <a href="/docs/getting-started" class="feature-card">
+          <div class="feature-icon terminal-icon"></div>
+          <h3>Powerful CLI</h3>
+          <p>Full control from the command line. Apply, backup, restore, and update with ease.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="install">
+    <div class="container">
+      <h2 class="section-title">Install in seconds</h2>
+      <p class="section-subtitle">One command. That's it.</p>
+      <div class="install-tabs">
+        <div class="install-tab active" data-tab="windows">Windows</div>
+        <div class="install-tab" data-tab="macos">macOS / Linux</div>
+      </div>
+      <div class="install-code active" id="windows-code">
+        <pre><code>iwr -useb https://raw.githubusercontent.com/YOUR_USERNAME/kladen/main/cli/installers/install.ps1 | iex</code></pre>
+        <button class="btn-copy" onclick="navigator.clipboard.writeText('iwr -useb https://raw.githubusercontent.com/YOUR_USERNAME/kladen/main/cli/installers/install.ps1 | iex')">Copy</button>
+      </div>
+      <div class="install-code" id="macos-code">
+        <pre><code>curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/kladen/main/cli/installers/install.sh | sh</code></pre>
+        <button class="btn-copy" onclick="navigator.clipboard.writeText('curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/kladen/main/cli/installers/install.sh | sh')">Copy</button>
+      </div>
+      <div class="install-links">
+        <a href="/docs/getting-started" class="btn btn-outline">Read the Docs</a>
+        <a href="#" class="btn btn-outline">Join Discord</a>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const tabs = document.querySelectorAll('[data-tab]');
+  const codes = {
+    windows: document.getElementById('windows-code'),
+    macos: document.getElementById('macos-code'),
+  };
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      Object.values(codes).forEach(c => c?.classList.remove('active'));
+      const key = tab.dataset.tab;
+      if (codes[key]) codes[key].classList.add('active');
+    });
+  });
+</script>
+
+<style is:global>
+  .hero {
+    padding: 120px 0 80px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, rgba(29, 185, 84, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  .hero-title {
+    font-size: 64px;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    letter-spacing: -0.02em;
+  }
+
+  .gradient-text {
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle {
+    font-size: 20px;
+    color: var(--text-muted);
+    margin-bottom: 36px;
+    line-height: 1.5;
+  }
+
+  .hero-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  /* Showcase */
+  .showcase-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .showcase-card {
+    text-align: center;
+  }
+
+  .showcase-img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+    background-size: cover;
+    background-position: center;
+  }
+
+  .marketplace-img { background: linear-gradient(135deg, #1db954, #191414); }
+  .apps-img { background: linear-gradient(135deg, #6c5ce7, #2d1b69); }
+  .extensions-img { background: linear-gradient(135deg, #fd79a8, #6c5ce7); }
+
+  .showcase-label {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  /* Themes */
+  .themes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .theme-card {
+    text-align: center;
+  }
+
+  .theme-preview {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 10px;
+  }
+
+  .theme-card p {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .themes-more {
+    text-align: center;
+    margin-top: 36px;
+  }
+
+  /* Features */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .feature-card {
+    padding: 32px 24px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    transition: all 0.2s;
+  }
+
+  .feature-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .feature-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    background: var(--gradient);
+  }
+
+  .feature-card h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .feature-card p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* Install */
+  .install-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px;
+    width: fit-content;
+    margin: 0 auto 24px;
+  }
+
+  .install-tab {
+    padding: 8px 20px;
+    border-radius: 999px;
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.2s;
+  }
+
+  .install-tab.active {
+    background: var(--border);
+    color: var(--text);
+  }
+
+  .install-code {
+    position: relative;
+    display: none;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .install-code.active {
+    display: block;
+  }
+
+  .install-code pre {
+    padding: 20px 80px 20px 20px;
+  }
+
+  .install-code code {
+    font-size: 14px;
+  }
+
+  .btn-copy {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-copy:hover {
+    color: var(--text);
+    border-color: var(--text-muted);
+  }
+
+  .install-links {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 32px;
+  }
+
+  @media (max-width: 768px) {
+    .hero-title { font-size: 36px; }
+    .hero-subtitle { font-size: 16px; }
+    .showcase-grid { grid-template-columns: 1fr; }
+    .themes-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 1024px) {
+    .features-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>

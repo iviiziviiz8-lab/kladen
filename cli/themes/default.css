@@ -1,0 +1,67 @@
+:root {
+  --main-bg: #0a0a0b;
+  --main-fg: #fafafa;
+  --accent: #1ed760;
+  --subtext: #a1a1aa;
+  --card-bg: #141416;
+  --border: #27272a;
+}
+
+/* Main background */
+.main-view-container,
+.Root__main-view {
+  background: var(--main-bg) !important;
+}
+
+/* Sidebar */
+.Root__nav-bar,
+.os-viewport,
+.nav-bar {
+  background: var(--main-bg) !important;
+}
+
+/* Cards */
+.main-card-card,
+.main-trackList-trackList,
+[class*="main-"] {
+  background: transparent !important;
+}
+
+.main-card-card:hover {
+  background: var(--card-bg) !important;
+}
+
+/* Text */
+.main-type-mesto,
+.main-type-ballad,
+.main-type-canon {
+  color: var(--main-fg) !important;
+}
+
+.main-type-mestoSecondary,
+.main-type-balladSecondary {
+  color: var(--subtext) !important;
+}
+
+/* Buttons */
+button:has(path[d*="M14.5"]) svg,
+[class*="playButton"] {
+  color: var(--accent) !important;
+}
+
+/* Progress bar */
+.progress-bar,
+.x-progressBar-progressBarBg {
+  --progress-bar-color: var(--accent) !important;
+}
+
+/* Playbar */
+.Root__now-playing-bar {
+  background: var(--card-bg) !important;
+  border-top: 1px solid var(--border) !important;
+}
+
+/* Scrollbar */
+.os-scrollbar-handle {
+  background: var(--border) !important;
+}
